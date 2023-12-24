@@ -156,7 +156,7 @@
       try {
         const historicoConcursos = await loteriasCaixaAPI.listaResultados();
         const ultimoConcurso = await loteriasCaixaAPI.ultimoConcurso();
-        const amostra = historicoConcursos.slice(-100);
+        const amostra = historicoConcursos.slice(-1000);
 
         const dezenas = gerarConcursoAleatorio(
           gerarMapaPossibilidades([...amostra])
