@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "axios": "^1.3.6",
+    "brain.js": "^2.0.0-beta.23",
+    "loterias-caixa-json": "github:dennnisk/loterias-caixa-json",
+    "numeral": "^2.0.6"
+  }
+}

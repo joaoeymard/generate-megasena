@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Concursos da MegaSena</title>
+
+  <link rel="stylesheet" href="lib/bootstrap-5.3.2/css/bootstrap.min.css">
+  <style>
+    html,
+    body {
+      background-color: #222;
+    }
+
+    .bg-dark-page {
+      background-color: #282828;
+    }
+
+    table.table-resultado td {
+      font-family: fantasy;
+      background-color: transparent;
+    }
+
+    table.table-resultado td .dezena {
+      height: 75px;
+      width: 75px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark-page">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Gerador de Concursos da MegaSena</a>
+        </div>
+        <!-- Botão para gerar um novo jogo -->
+
+      </nav>
+    </header>
+
+    <section>
+      <div class="container">
+
+        <table class="table table-borderless table-resultado my-5" style="font-size: xx-large;">
+          <tbody>
+            <tr>
+              <td>
+                <!-- gif de loading para sinalizar processamento -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="spinner-border text-light" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="row g-2 mb-5">
+          <div class="col-12">
+            <div class="card bg-dark-page text-light border-0">
+              <div class="card-body text-center">
+                <h3 class="card-title m-0 p-0" id="txaGeral"></h3>
+                <p class="card-text m-0 p-0">Probabilidade Geral</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card bg-dark-page text-light border-0">
+              <div class="card-body text-center">
+                <h5 class="card-title m-0 p-0" id="txaRepetidas">
+                  </h3>
+                  <p class="card-text m-0 p-0"><small>Dezenas Repetidas</small></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card bg-dark-page text-light border-0">
+              <div class="card-body text-center">
+                <h5 class="card-title m-0 p-0" id="txaParesImpares">
+                  </h3>
+                  <p class="card-text m-0 p-0"><small>Pares / Impares</small></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card bg-dark-page text-light border-0">
+              <div class="card-body text-center">
+                <h5 class="card-title m-0 p-0" id="txaSomatoria">
+                  </h3>
+                  <p class="card-text m-0 p-0"><small>Somatória</small></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card bg-dark-page text-light border-0">
+              <div class="card-body text-center">
+                <h5 class="card-title m-0 p-0" id="txaMedia">
+                  </h3>
+                  <p class="card-text m-0 p-0"><small>Média</small></p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer com os créditos do autor -->
+    <footer class="text-light text-center py-3">
+      <p class="m-0 p-0">Desenvolvido por <a href="//joaoeymard.dev" target="_blank">João Eymard</a></p>
+    </footer>
+  </main>
+
+  <script src="lib/bootstrap-5.3.2/js/bootstrap.min.js"></script>
+  <script src="lib/numeral.min.js"></script>
+  <script src="lib/axios.min.js"></script>
+  <script src="loterias.js"></script>
+  <script src="index.js"></script>
+
+  <script>
+    function mostrarDezenas(concurso) {
+      const dezenas = concurso.sort();
+      const dezenasHTML = dezenas.map((dezena) => {
+        return `<span class="d-flex justify-content-center align-items-center rounded-circle bg-success text-light mx-auto dezena">${dezena}</span>`;
+      });
+
+      document.querySelector(".table-resultado tbody").innerHTML = `
+        <tr>
+          <td class="text-center">${dezenasHTML[0]}</td>
+          <td class="text-center">${dezenasHTML[1]}</td>
+          <td class="text-center">${dezenasHTML[2]}</td>
+        </tr>
+        <tr>
+          <td class="text-center">${dezenasHTML[3]}</td>
+          <td class="text-center">${dezenasHTML[4]}</td>
+          <td class="text-center">${dezenasHTML[5]}</td>
+        </tr>
+      `;
+    }
+
+    function mostrarTaxas(taxas) {
+      document.querySelector("#txaRepetidas").innerHTML = `${number(taxas[0]).format("0.0%")}`;
+      document.querySelector("#txaParesImpares").innerHTML = `${number(taxas[3]).format("0.0%")}`;
+      document.querySelector("#txaSomatoria").innerHTML = `${number(taxas[1]).format("0.0%")}`;
+      document.querySelector("#txaMedia").innerHTML = `${number(taxas[2]).format("0.0%")}`;
+      document.querySelector("#txaGeral").innerHTML = `${number(taxas[4]).format("0.0%")}`;
+    }
+
+    (async function () {
+      try {
+        const historicoConcursos = await loteriasCaixaAPI.listaResultados();
+        const ultimoConcurso = await loteriasCaixaAPI.ultimoConcurso();
+        const amostra = historicoConcursos.slice(-100);
+
+        const dezenas = gerarConcursoAleatorio(
+          gerarMapaPossibilidades([...amostra])
+        );
+
+        const txaRepetidas = txaDezenasRepetidasUltimoConcurso(
+          dezenas,
+          ultimoConcurso
+        );
+
+        const txaSomatoria = txaSomatoriaDezenas(dezenas);
+        const txaMedia = txaMediaDezenas(dezenas);
+        const txParesImpares = txaParesImpares(dezenas);
+
+        mostrarDezenas(dezenas);
+        mostrarTaxas([
+          txaRepetidas,
+          txaSomatoria,
+          txaMedia,
+          txParesImpares,
+          txaGeral([txaRepetidas, txaSomatoria, txaMedia, txParesImpares]),
+        ]);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  </script>
+
+</body>
+
+</html>
